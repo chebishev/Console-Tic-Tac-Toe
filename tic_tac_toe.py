@@ -1,30 +1,18 @@
 from collections import deque
+from pyfiglet import Figlet
 
-
-def check_for_draw():
-    if all([all(pos.strip() for pos in row) for row in board]):
-        print("Draw!")
-        raise SystemExit
-
-
-def check_for_win():
-    player_name, player_symbol = players[0]
-
-    first_diagonal_win = all([board[i][i] == player_symbol for i in range(size)])
-    second_diagonal_win = all([board[i][size - i - 1] == player_symbol for i in range(size)])
-    row_win = any([all(pos == player_symbol for pos in row) for row in board])
-    col_win = any([all(board[r][c] == player_symbol for r in range(size)) for c in range(size)])
-
-    if any([first_diagonal_win, second_diagonal_win, row_win, col_win]):
-        print(f"{player_name} won!")
-
-        raise SystemExit
-
-    else:
-        players.rotate(1)
+from board import print_board
+from draw import check_for_draw
+from win import check_for_win
 
 
 def place_symbol(position):
+    """
+    :param position: Position is number from 1 to size * size of the board
+    and this function translates it to row, column from board[0][0] to board[size - 1][size - 1]
+    :return: board with new player symbol on it, checks for draw or win and asks
+    for the next player to choose position
+    """
     row, col = (position - 1) // size, (position - 1) % size
 
     if board[row][col] != " ":
@@ -32,15 +20,19 @@ def place_symbol(position):
 
     board[row][col] = players[0][1]
 
-    print_board()
+    print_board(players, board, size)
 
-    check_for_win()
-    check_for_draw()
+    check_for_win(players, board, size)
+    check_for_draw(board)
 
     choose_position()
 
 
 def choose_position():
+    """
+    :return: returns the chosen position from 1 to size * size
+    if it is not valid it raises ValueError and asks the player to choose again
+    """
     while True:
         try:
             position = int(input(f"{players[0][0]} choose a free position [1-{size * size}]: "))
@@ -56,21 +48,9 @@ def choose_position():
             continue
 
 
-def print_board(begin=False):
-    if begin:
-        print("This is the numeration of the board:")
-        [print(f"| {' | '.join(row)} |") for row in board]
-        print(f"{players[0][0]} starts first!")
-
-        # erase all the numbers from the board so the game can start
-        for row in range(size):
-            for col in range(size):
-                board[row][col] = " "
-    else:
-        [print(f"| {' | '.join(row)} |") for row in board]
-
-
 def start():
+    figlet = Figlet(font='slant')
+    print(figlet.renderText('TIC TAC TOE'))
     player_one_name = input("Player one enter your name: ")
     player_two_name = input("Player two enter your name: ")
     while True:
@@ -87,7 +67,7 @@ def start():
     players.append([player_two_name, player_two_symbol])
 
     # first printing of the board is with filled positions
-    print_board(True)
+    print_board(players, board, size, True)
     choose_position()
 
 
